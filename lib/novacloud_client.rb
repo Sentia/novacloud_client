@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "novacloud_client/version"
+require "faraday"
+require "json"
 
-module NovacloudClient
-  class Error < StandardError; end
-  # Your code goes here...
-end
+require_relative "novacloud_client/version"
+require_relative "novacloud_client/errors"
+require_relative "novacloud_client/configuration"
+require_relative "novacloud_client/client"
