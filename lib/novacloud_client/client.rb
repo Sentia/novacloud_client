@@ -7,6 +7,8 @@ require_relative "errors"
 require_relative "configuration"
 require_relative "middleware/authentication"
 require_relative "middleware/error_handler"
+require_relative "resources/players"
+require_relative "resources/control"
 
 module NovacloudClient
   # Central entry point for interacting with the NovaCloud API.
@@ -35,6 +37,14 @@ module NovacloudClient
       end
 
       parse_body(response)
+    end
+
+    def players
+      @players ||= Resources::Players.new(self)
+    end
+
+    def control
+      @control ||= Resources::Control.new(self)
     end
 
     private
