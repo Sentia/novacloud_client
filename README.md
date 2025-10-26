@@ -7,12 +7,14 @@
 - Maps HTTP errors to a typed exception hierarchy.
 - Normalizes GET/POST payloads and parses JSON responses.
 
-Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
+ Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`, `client.scheduled_control`, `client.solutions`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
 
 ## Resource Overview
 
 - **Players**: `list`, `statuses`, `running_status`
-- **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `request_result`
+- **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `ntp_sync`, `synchronous_playback`, `request_result`
+- **Scheduled Control**: `screen_status`, `reboot`, `volume`, `brightness`, `video_source`
+- **Solutions**: `emergency_page`, `cancel_emergency`, `common_solution`
 - **Screens** (VNNOXCare): `list`, `monitor`, `detail`
 - **Logs**: `control_history`
 
@@ -32,6 +34,28 @@ first_player = players.first
 
 statuses = client.players.statuses(player_ids: players.map(&:player_id))
 
+queue = client.players.config_status(
+  player_ids: players.map(&:player_id),
+  notice_url: "https://example.com/status-webhook"
+)
+
+client.control.ntp_sync(
+  player_ids: players.map(&:player_id),
+  server: "ntp1.aliyun.com",
+  enable: true
+)
+
+client.scheduled_control.brightness(
+  player_ids: players.map(&:player_id),
+  schedules: {
+    start_date: Date.today.strftime("%Y-%m-%d"),
+    end_date: (Date.today + 30).strftime("%Y-%m-%d"),
+    exec_time: "07:00:00",
+    type: 0,
+    value: 55
+  }
+)
+
 request = client.control.brightness(
   player_ids: players.map(&:player_id),
   brightness: 80,
@@ -43,6 +67,23 @@ puts result.all_successful?
 
 screens = client.screens.list(status: 1)
 puts screens.first.name
+
+client.solutions.emergency_page(
+  player_ids: [first_player.player_id],
+  attribute: { duration: 20_000, normal_program_status: "PAUSE", spots_type: "IMMEDIATELY" },
+  page: {
+    name: "urgent-alert",
+    widgets: [
+      {
+        type: "PICTURE",
+        z_index: 1,
+        duration: 10_000,
+        url: "https://example.com/alert.png",
+        layout: { x: "0%", y: "0%", width: "100%", height: "100%" }
+      }
+    ]
+  }
+)
 ```
 
 ### Development

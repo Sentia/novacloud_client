@@ -23,6 +23,15 @@ module NovacloudClient
     #   )
     class Players < Base
       MAX_BATCH = 100
+      CONFIG_STATUS_COMMANDS = %w[
+        volumeValue
+        brightnessValue
+        videoSourceValue
+        timeValue
+        screenPowerStatus
+        syncPlayStatus
+        powerStatus
+      ].freeze
 
       # Retrieve players with optional pagination and fuzzy name filtering.
       #
@@ -71,6 +80,22 @@ module NovacloudClient
 
         response = post("/v2/player/current/running-status", params: payload)
         Objects::QueuedRequest.new(response)
+      end
+
+      # Convenience wrapper around `running_status` for configuration polling.
+      # Uses NovaCloud's recommended command set by default.
+      def config_status(player_ids:, notice_url:, commands: CONFIG_STATUS_COMMANDS)
+        running_status(player_ids: player_ids, commands: commands, notice_url: notice_url)
+      end
+
+      # Delegate to the control resource for NTP time synchronization settings.
+      def ntp_sync(player_ids:, server:, enable:)
+        client.control.ntp_sync(player_ids: player_ids, server: server, enable: enable)
+      end
+
+      # Delegate to the control resource for synchronous playback toggles.
+      def synchronous_playback(player_ids:, option:)
+        client.control.synchronous_playback(player_ids: player_ids, option: option)
       end
 
       private

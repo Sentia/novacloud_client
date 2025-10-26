@@ -122,4 +122,84 @@ RSpec.describe NovacloudClient::Resources::Players do
       expect(result.request_id).to eq("abc")
     end
   end
+
+  describe "#config_status" do
+    let(:default_commands) do
+      %w[
+        volumeValue
+        brightnessValue
+        videoSourceValue
+        timeValue
+        screenPowerStatus
+        syncPlayStatus
+        powerStatus
+      ]
+    end
+
+    it "uses the default configuration command set" do
+      stub_request(:post, "https://api.example.com/v2/player/current/running-status")
+        .with(body: {
+          playerIds: %w[p1],
+          commands: default_commands,
+          noticeUrl: "https://callback.example.com"
+        }.to_json)
+        .to_return(status: 200, body: { "requestId" => "cfg-1" }.to_json)
+
+      result = resource.config_status(
+        player_ids: %w[p1],
+        notice_url: "https://callback.example.com"
+      )
+
+      expect(result.request_id).to eq("cfg-1")
+    end
+
+    it "allows overriding the command list" do
+      stub_request(:post, "https://api.example.com/v2/player/current/running-status")
+        .with(body: {
+          playerIds: %w[p1],
+          commands: %w[timeValue],
+          noticeUrl: "https://callback.example.com"
+        }.to_json)
+        .to_return(status: 200, body: { "requestId" => "cfg-2" }.to_json)
+
+      result = resource.config_status(
+        player_ids: %w[p1],
+        notice_url: "https://callback.example.com",
+        commands: %w[timeValue]
+      )
+
+      expect(result.request_id).to eq("cfg-2")
+    end
+  end
+
+  describe "#ntp_sync" do
+    it "delegates to the control resource" do
+      stub_request(:post, "https://api.example.com/v2/player/real-time-control/ntp")
+        .with(body: {
+          playerIds: %w[p1],
+          server: "pool.ntp.org",
+          enable: true
+        }.to_json)
+        .to_return(status: 200, body: { "success" => ["p1"], "fail" => [] }.to_json)
+
+      result = resource.ntp_sync(player_ids: %w[p1], server: "pool.ntp.org", enable: true)
+
+      expect(result).to be_all_successful
+    end
+  end
+
+  describe "#synchronous_playback" do
+    it "delegates to the control resource" do
+      stub_request(:post, "https://api.example.com/v2/player/real-time-control/simulcast")
+        .with(body: {
+          playerIds: %w[p1],
+          option: 1
+        }.to_json)
+        .to_return(status: 200, body: { "success" => ["p1"], "fail" => [] }.to_json)
+
+      result = resource.synchronous_playback(player_ids: %w[p1], option: :on)
+
+      expect(result).to be_all_successful
+    end
+  end
 end

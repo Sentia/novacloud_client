@@ -9,6 +9,8 @@ require_relative "middleware/authentication"
 require_relative "middleware/error_handler"
 require_relative "resources/players"
 require_relative "resources/control"
+require_relative "resources/scheduled_control"
+require_relative "resources/solutions"
 require_relative "resources/screens"
 require_relative "resources/logs"
 
@@ -47,6 +49,14 @@ module NovacloudClient
 
     def control
       @control ||= Resources::Control.new(self)
+    end
+
+    def scheduled_control
+      @scheduled_control ||= Resources::ScheduledControl.new(self)
+    end
+
+    def solutions
+      @solutions ||= Resources::Solutions.new(self)
     end
 
     def screens

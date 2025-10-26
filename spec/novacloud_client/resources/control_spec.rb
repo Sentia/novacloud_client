@@ -236,4 +236,48 @@ RSpec.describe NovacloudClient::Resources::Control do
       expect { resource.request_result(request_id: " ") }.to raise_error(ArgumentError)
     end
   end
+
+  describe "#ntp_sync" do
+    it "validates enable flag" do
+      expect do
+        resource.ntp_sync(player_ids: %w[p1], server: "ntp1.aliyun.com", enable: nil)
+      end.to raise_error(ArgumentError)
+    end
+
+    it "publishes ntp sync command" do
+      stub_request(:post, "https://api.example.com/v2/player/real-time-control/ntp")
+        .with(body: {
+          playerIds: %w[p1 p2],
+          server: "ntp1.aliyun.com",
+          enable: true
+        }.to_json)
+        .to_return(status: 200, body: { "success" => %w[p1], "fail" => %w[p2] }.to_json)
+
+      result = resource.ntp_sync(player_ids: %w[p1 p2], server: "ntp1.aliyun.com", enable: true)
+
+      expect(result).to be_a(NovacloudClient::Objects::ControlResult)
+      expect(result.partial_success?).to be(true)
+    end
+  end
+
+  describe "#synchronous_playback" do
+    it "normalizes option values" do
+      stub_request(:post, "https://api.example.com/v2/player/real-time-control/simulcast")
+        .with(body: {
+          playerIds: %w[p1],
+          option: 1
+        }.to_json)
+        .to_return(status: 200, body: { "success" => %w[p1], "fail" => [] }.to_json)
+
+      result = resource.synchronous_playback(player_ids: %w[p1], option: :on)
+
+      expect(result).to be_all_successful
+    end
+
+    it "raises on invalid option" do
+      expect do
+        resource.synchronous_playback(player_ids: %w[p1], option: :invalid)
+      end.to raise_error(ArgumentError)
+    end
+  end
 end
