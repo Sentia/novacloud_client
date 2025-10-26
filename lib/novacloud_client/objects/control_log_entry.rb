@@ -16,10 +16,6 @@ module NovacloudClient
       def success?
         status.to_i.zero? ? false : status.to_i == 1
       end
-
-      def executeTime=(value)
-        self.execute_time = value
-      end
     end
   end
 end

@@ -7,10 +7,6 @@ module NovacloudClient
     # Represents high-level monitoring metrics for a screen device.
     class ScreenMonitor < Base
       attr_accessor :display_device, :brightness, :env_brightness, :height, :width, :sn
-
-      def envBrightness=(value)
-        self.env_brightness = value
-      end
     end
   end
 end

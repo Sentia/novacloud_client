@@ -16,14 +16,6 @@ module NovacloudClient
       def camera_enabled?
         camera.to_i == 1
       end
-
-      def envBrightness=(value)
-        self.env_brightness = value
-      end
-
-      def screenStatus=(value)
-        self.status = value
-      end
     end
   end
 end

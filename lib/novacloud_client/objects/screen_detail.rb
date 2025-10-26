@@ -9,35 +9,20 @@ module NovacloudClient
       attr_accessor :identifier, :input_source, :mac, :master_control, :module,
                     :monitor_card, :receiving_card, :screen, :sid, :smart_module, :sn
 
+      NESTED_HASH_FIELDS = %i[input_source master_control module monitor_card receiving_card screen smart_module].freeze
+
       def initialize(attributes = {})
         super
-        @input_source ||= {}
-        @master_control ||= {}
-        @module ||= {}
-        @monitor_card ||= {}
-        @receiving_card ||= {}
-        @screen ||= {}
-        @smart_module ||= {}
+        ensure_nested_hashes!
       end
 
-      def inputSource=(value)
-        self.input_source = value
-      end
+      private
 
-      def masterControl=(value)
-        self.master_control = value
-      end
-
-      def monitorCard=(value)
-        self.monitor_card = value
-      end
-
-      def receivingCard=(value)
-        self.receiving_card = value
-      end
-
-      def smartModule=(value)
-        self.smart_module = value
+      def ensure_nested_hashes!
+        NESTED_HASH_FIELDS.each do |field|
+          value = public_send(field)
+          public_send("#{field}=", value || {})
+        end
       end
     end
   end

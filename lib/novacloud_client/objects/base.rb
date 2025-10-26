@@ -14,8 +14,16 @@ module NovacloudClient
 
       def assign_attributes(attributes)
         attributes.each do |key, value|
-          setter = "#{key}="
-          public_send(setter, value) if respond_to?(setter)
+          writer = "#{key}="
+          if respond_to?(writer)
+            public_send(writer, value)
+            next
+          end
+
+          normalized_writer = normalize_writer(key)
+          next if normalized_writer == writer
+
+          public_send(normalized_writer, value) if respond_to?(normalized_writer)
         end
       end
 
@@ -26,6 +34,15 @@ module NovacloudClient
         Time.parse(value.to_s)
       rescue ArgumentError
         value
+      end
+
+      def normalize_writer(key)
+        normalized = key.to_s
+        normalized = normalized.gsub(/([A-Z\d]+)([A-Z][a-z])/, "\\1_\\2")
+                               .gsub(/([a-z\d])([A-Z])/, "\\1_\\2")
+                               .tr("-", "_")
+                               .downcase
+        "#{normalized}="
       end
     end
   end
