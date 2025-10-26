@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'faraday'
-require 'json'
+require "faraday"
+require "json"
 
-require_relative 'errors'
-require_relative 'configuration'
-require_relative 'middleware/authentication'
-require_relative 'middleware/error_handler'
+require_relative "errors"
+require_relative "configuration"
+require_relative "middleware/authentication"
+require_relative "middleware/error_handler"
 
 module NovacloudClient
   # Central entry point for interacting with the NovaCloud API.
@@ -31,16 +31,7 @@ module NovacloudClient
       symbolized_method = http_method.to_sym
       response = connection.public_send(symbolized_method) do |req|
         req.url endpoint
-
-        case symbolized_method
-        when :get, :delete
-          req.params.update(params) unless params.empty?
-        else
-          unless params.empty?
-            req.headers['Content-Type'] = 'application/json; charset=utf-8'
-            req.body = JSON.generate(params)
-          end
-        end
+        apply_request_payload(req, symbolized_method, params)
       end
 
       parse_body(response)
@@ -50,7 +41,7 @@ module NovacloudClient
 
     def build_connection
       Faraday.new(url: config.base_url) do |faraday|
-        faraday.headers['Accept'] = 'application/json'
+        faraday.headers["Accept"] = "application/json"
 
         faraday.use Middleware::Authentication,
                     app_key: config.app_key,
@@ -60,6 +51,18 @@ module NovacloudClient
         @faraday_block&.call(faraday)
 
         faraday.adapter config.adapter
+      end
+    end
+
+    def apply_request_payload(request, http_method, params)
+      return if params.empty?
+
+      case http_method
+      when :get, :delete
+        request.params.update(params)
+      else
+        request.headers["Content-Type"] = "application/json; charset=utf-8"
+        request.body = JSON.generate(params)
       end
     end
 

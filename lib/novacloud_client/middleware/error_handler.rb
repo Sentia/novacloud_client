@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require "faraday"
 
-require_relative '../errors'
+require_relative "../errors"
 
 module NovacloudClient
   module Middleware
@@ -19,10 +19,6 @@ module NovacloudClient
         503 => NovacloudClient::ServiceUnavailableError,
         504 => NovacloudClient::GatewayTimeoutError
       }.freeze
-
-      def initialize(app)
-        super(app)
-      end
 
       def call(env)
         @app.call(env).on_complete do |response_env|
@@ -51,10 +47,10 @@ module NovacloudClient
 
       def summary_from(env)
         body = env.body
-        return 'No response body' if body.nil?
+        return "No response body" if body.nil?
 
         if body.is_a?(String)
-          body.strip.empty? ? 'Empty body' : body.strip[0, 200]
+          body.strip.empty? ? "Empty body" : body.strip[0, 200]
         elsif body.respond_to?(:to_json)
           body.to_json[0, 200]
         else

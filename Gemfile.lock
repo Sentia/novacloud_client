@@ -103,12 +103,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 2.4)
   irb
   novacloud_client!
   rake (~> 13.0)
-  rspec (~> 3.12, ~> 3.0)
-  rubocop (~> 1.21)
+  rspec (~> 3.12)
+  rubocop (~> 1.60)
   webmock (~> 3.19)
   yard (~> 0.9)
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'faraday'
-require 'digest'
-require 'securerandom'
+require "faraday"
+require "digest"
+require "securerandom"
 
 module NovacloudClient
   module Middleware
@@ -20,10 +20,10 @@ module NovacloudClient
         checksum = checksum_for(nonce, cur_time)
 
         headers = env.request_headers
-        headers['AppKey'] = @app_key
-        headers['Nonce'] = nonce
-        headers['CurTime'] = cur_time
-        headers['CheckSum'] = checksum
+        headers["AppKey"] = @app_key
+        headers["Nonce"] = nonce
+        headers["CurTime"] = cur_time
+        headers["CheckSum"] = checksum
 
         @app.call(env)
       end
