@@ -29,10 +29,11 @@ module NovacloudClient
       # @param sn [String] screen serial number registered in VNNOXCare
       # @return [NovacloudClient::Objects::ScreenMonitor]
       # @raise [ArgumentError] when serial number is blank
-      def monitor(sn:)
-        validate_presence!(sn, "sn")
+      def monitor(serial_number: nil, **kwargs)
+        serial = serial_number || kwargs[:sn]
+        validate_presence!(serial, "serial_number")
 
-        response = get("/v2/device-status-monitor/screen/monitor/#{sn}")
+        response = get("/v2/device-status-monitor/screen/monitor/#{serial}")
         Objects::ScreenMonitor.new(response)
       end
 
