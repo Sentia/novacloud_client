@@ -118,8 +118,8 @@ RSpec.describe NovacloudClient::Resources::Players do
       )
 
       expect(result).to be_a(NovacloudClient::Objects::QueuedRequest)
-  expect(result.success).to eq([])
-  expect(result.request_id).to eq("abc")
+      expect(result.success).to eq([])
+      expect(result.request_id).to eq("abc")
     end
   end
 end

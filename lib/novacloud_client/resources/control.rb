@@ -39,7 +39,7 @@ module NovacloudClient
           noticeUrl: notice_url
         }
 
-        response = post("/v2/player/control/brightness", params: payload)
+        response = post("/v2/player/real-time-control/brightness", params: payload)
         Objects::QueuedRequest.new(response)
       end
 
@@ -61,7 +61,93 @@ module NovacloudClient
           noticeUrl: notice_url
         }
 
-        response = post("/v2/player/control/volume", params: payload)
+        response = post("/v2/player/real-time-control/volume", params: payload)
+        Objects::QueuedRequest.new(response)
+      end
+
+      # Switch the video input source (e.g., HDMI1) for the selected players.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param source [String] identifier for the input source defined by NovaCloud (e.g., "HDMI1")
+      # @param notice_url [String] HTTPS callback endpoint for async results
+      # @return [NovacloudClient::Objects::QueuedRequest]
+      # @raise [ArgumentError] when validation fails
+      def video_source(player_ids:, source:, notice_url:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+        validate_presence!(source, "source")
+        validate_notice_url!(notice_url)
+
+        payload = {
+          playerIds: player_ids,
+          videoSource: source,
+          noticeUrl: notice_url
+        }
+
+        response = post("/v2/player/real-time-control/video-source", params: payload)
+        Objects::QueuedRequest.new(response)
+      end
+
+      # Toggle screen power state for the selected players.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param state [Symbol, String, Integer, TrueClass, FalseClass] desired power state
+      #   (:on, :off, true, false, 1, or 0)
+      # @param notice_url [String] HTTPS callback endpoint for async results
+      # @return [NovacloudClient::Objects::QueuedRequest]
+      # @raise [ArgumentError] when validation fails
+      def screen_power(player_ids:, state:, notice_url:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+        normalized_state = normalize_power_state(state)
+        validate_notice_url!(notice_url)
+
+        payload = {
+          playerIds: player_ids,
+          option: normalized_state,
+          noticeUrl: notice_url
+        }
+
+        response = post("/v2/player/real-time-control/power", params: payload)
+        Objects::QueuedRequest.new(response)
+      end
+
+      # Request a black screen/normal screen toggle for the selected players.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param status [String, Symbol] desired screen mode (:open, :close, "OPEN", "CLOSE")
+      # @param notice_url [String] HTTPS callback endpoint for async results
+      # @return [NovacloudClient::Objects::QueuedRequest]
+      # @raise [ArgumentError] when validation fails
+      def screen_status(player_ids:, status:, notice_url:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+        normalized_status = normalize_screen_status(status)
+        validate_notice_url!(notice_url)
+
+        payload = {
+          playerIds: player_ids,
+          status: normalized_status,
+          noticeUrl: notice_url
+        }
+
+        response = post("/v2/player/real-time-control/screen-status", params: payload)
+        Objects::QueuedRequest.new(response)
+      end
+
+      # Trigger screenshots for the selected players.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param notice_url [String] HTTPS callback endpoint receiving screenshot info
+      # @return [NovacloudClient::Objects::QueuedRequest]
+      # @raise [ArgumentError] when validation fails
+      def screenshot(player_ids:, notice_url:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+        validate_notice_url!(notice_url)
+
+        payload = {
+          playerIds: player_ids,
+          noticeUrl: notice_url
+        }
+
+        response = post("/v2/player/real-time-control/screen-capture", params: payload)
         Objects::QueuedRequest.new(response)
       end
 
@@ -80,7 +166,7 @@ module NovacloudClient
           noticeUrl: notice_url
         }
 
-        response = post("/v2/player/control/reboot", params: payload)
+        response = post("/v2/player/real-time-control/reboot", params: payload)
         Objects::QueuedRequest.new(response)
       end
 
@@ -106,6 +192,28 @@ module NovacloudClient
 
       def validate_notice_url!(notice_url)
         raise ArgumentError, "notice_url is required" if notice_url.to_s.strip.empty?
+      end
+
+      def validate_presence!(value, field)
+        raise ArgumentError, "#{field} is required" if value.to_s.strip.empty?
+      end
+
+      def normalize_power_state(state)
+        case state
+        when true, :on, "on", "ON", 1 then 1
+        when false, :off, "off", "OFF", 0 then 0
+        else
+          raise ArgumentError, "state must be one of :on, :off, true, false, or 0/1"
+        end
+      end
+
+      def normalize_screen_status(status)
+        case status
+        when :open, "open", "OPEN" then "OPEN"
+        when :close, "close", "CLOSE", :closed then "CLOSE"
+        else
+          raise ArgumentError, "status must be OPEN or CLOSE"
+        end
       end
     end
   end

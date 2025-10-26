@@ -1,6 +1,6 @@
 # NovaCloud Client (WIP)
 
-Sprint 01 delivered the core HTTP client for the NovaCloud Open Platform. The gem now:
+ Sprint 01 delivered the core HTTP client for the NovaCloud Open Platform. The gem now:
 
 - Manages configuration once (`app_key`, `app_secret`, `service_domain`).
 - Handles authentication headers automatically via Faraday middleware.
@@ -8,6 +8,13 @@ Sprint 01 delivered the core HTTP client for the NovaCloud Open Platform. The ge
 - Normalizes GET/POST payloads and parses JSON responses.
 
 Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
+
+## Resource Overview
+
+- **Players**: `list`, `statuses`, `running_status`
+- **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `request_result`
+- **Screens** (VNNOXCare): `list`, `monitor`, `detail`
+- **Logs**: `control_history`
 
 ## Quick Start
 
@@ -33,6 +40,9 @@ request = client.control.brightness(
 
 result = client.control.request_result(request_id: request.request_id)
 puts result.all_successful?
+
+screens = client.screens.list(status: 1)
+puts screens.first.name
 ```
 
 ### Development
