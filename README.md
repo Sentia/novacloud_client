@@ -7,6 +7,8 @@ Sprint 01 delivered the core HTTP client for the NovaCloud Open Platform. The ge
 - Maps HTTP errors to a typed exception hierarchy.
 - Normalizes GET/POST payloads and parses JSON responses.
 
+Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
+
 ## Quick Start
 
 ```ruby
@@ -18,11 +20,19 @@ client = NovacloudClient::Client.new(
   service_domain: "open-us.vnnox.com"
 )
 
-response = client.request(
-  http_method: :get,
-  endpoint: "/v2/player/list",
-  params: { start: 0, count: 20 }
+players = client.players.list(count: 20)
+first_player = players.first
+
+statuses = client.players.statuses(player_ids: players.map(&:player_id))
+
+request = client.control.brightness(
+  player_ids: players.map(&:player_id),
+  brightness: 80,
+  notice_url: "https://example.com/callback"
 )
+
+result = client.control.request_result(request_id: "REQUEST_ID_FROM_NOTICE")
+puts result.all_successful?
 ```
 
 ### Development
@@ -33,4 +43,12 @@ bundle exec rspec
 bundle exec rubocop
 ```
 
-Sprint 02 will add resource helpers (e.g., `client.players.list`) and response objects built on these foundations.
+### Documentation
+
+Run YARD to generate HTML API documentation for the gem:
+
+```bash
+bundle exec yard doc
+```
+
+Then browse the docs via the generated `doc/index.html` or launch a local server with `bundle exec yard server --reload`.
