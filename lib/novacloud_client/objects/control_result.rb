@@ -6,40 +6,49 @@ module NovacloudClient
   module Objects
     # Represents the result of a control or queued request returning success/fail lists.
     class ControlResult < Base
-      attr_reader :success, :fail
+      attr_reader :successes, :failures
 
       def initialize(attributes = {})
+        @successes = []
+        @failures = []
         super
-        @success ||= []
-        @fail ||= []
       end
 
       def success=(value)
-        @success = Array(value)
+        @successes = Array(value)
       end
 
       def fail=(value)
-        @fail = Array(value)
+        @failures = Array(value)
       end
 
       def all_successful?
-        raise.empty?
+        failures.empty?
       end
 
       def partial_success?
-        !success.empty? && !raise.empty?
+        successes.any? && failures.any?
       end
 
       def all_failed?
-        success.empty?
+        successes.empty?
       end
 
       def success_count
-        success.size
+        successes.size
       end
 
       def failure_count
-        raise.size
+        failures.size
+      end
+
+      # Maintain API compatibility with camelCase keys.
+      def success
+        successes
+      end
+
+      def fail
+        failures
       end
     end
   end

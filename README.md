@@ -31,7 +31,7 @@ request = client.control.brightness(
   notice_url: "https://example.com/callback"
 )
 
-result = client.control.request_result(request_id: "REQUEST_ID_FROM_NOTICE")
+result = client.control.request_result(request_id: request.request_id)
 puts result.all_successful?
 ```
 

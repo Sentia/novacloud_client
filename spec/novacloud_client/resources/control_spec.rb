@@ -27,7 +27,7 @@ RSpec.describe NovacloudClient::Resources::Control do
         }.to_json)
         .to_return(
           status: 200,
-          body: { "success" => %w[p1] }.to_json,
+          body: { "success" => %w[p1], "requestId" => "req-123" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -38,7 +38,8 @@ RSpec.describe NovacloudClient::Resources::Control do
       )
 
       expect(result).to be_a(NovacloudClient::Objects::QueuedRequest)
-      expect(result.success_count).to eq(1)
+  expect(result.success_count).to eq(1)
+  expect(result.request_id).to eq("req-123")
     end
   end
 
@@ -58,7 +59,7 @@ RSpec.describe NovacloudClient::Resources::Control do
         }.to_json)
         .to_return(
           status: 200,
-          body: { "success" => %w[p1] }.to_json,
+          body: { "success" => %w[p1], "requestId" => "req-456" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -69,7 +70,8 @@ RSpec.describe NovacloudClient::Resources::Control do
       )
 
       expect(result).to be_a(NovacloudClient::Objects::QueuedRequest)
-      expect(result).to be_all_successful
+  expect(result).to be_all_successful
+  expect(result.request_id).to eq("req-456")
     end
   end
 
@@ -82,7 +84,7 @@ RSpec.describe NovacloudClient::Resources::Control do
         }.to_json)
         .to_return(
           status: 200,
-          body: { "success" => %w[p1] }.to_json,
+          body: { "success" => %w[p1], "requestId" => "req-789" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -92,7 +94,8 @@ RSpec.describe NovacloudClient::Resources::Control do
       )
 
       expect(result).to be_a(NovacloudClient::Objects::QueuedRequest)
-      expect(result).to be_all_successful
+  expect(result).to be_all_successful
+  expect(result.request_id).to eq("req-789")
     end
   end
 

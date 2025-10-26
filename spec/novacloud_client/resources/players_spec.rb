@@ -107,7 +107,7 @@ RSpec.describe NovacloudClient::Resources::Players do
         .with(body: payload.to_json)
         .to_return(
           status: 200,
-          body: { "request_id" => "abc" }.to_json,
+          body: { "requestId" => "abc" }.to_json,
           headers: { "Content-Type" => "application/json" }
         )
 
@@ -118,7 +118,8 @@ RSpec.describe NovacloudClient::Resources::Players do
       )
 
       expect(result).to be_a(NovacloudClient::Objects::QueuedRequest)
-      expect(result.success).to eq([])
+  expect(result.success).to eq([])
+  expect(result.request_id).to eq("abc")
     end
   end
 end
