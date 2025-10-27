@@ -7,8 +7,6 @@ module NovacloudClient
     module Solutions
       # Represents the publish result structure returned by solution endpoints.
       class PublishResult < Base
-        attr_reader :successful, :failed
-
         def success=(value)
           @successful = Array(value).compact
         end

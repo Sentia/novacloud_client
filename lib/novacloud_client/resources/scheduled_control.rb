@@ -129,7 +129,8 @@ module NovacloudClient
         hash = entry.respond_to?(:to_h) ? entry.to_h : entry
         raise ArgumentError, "schedule entries must be hash-like" unless hash.is_a?(Hash)
 
-        # Only set date fields; callers will append exec_time, values, and week_days in the exact order needed by each endpoint
+        # Only set date fields; callers append exec_time, values, and week_days
+        # for each endpoint-specific payload requirement.
         base = {
           start_date: fetch_required(hash, :start_date, "start_date", :startDate, "startDate"),
           end_date: fetch_required(hash, :end_date, "end_date", :endDate, "endDate")
@@ -154,23 +155,30 @@ module NovacloudClient
 
       # Remove empty weekDays for endpoints that expect them omitted in tests/docs
       def cleanup_schedule_payload(endpoint, payload)
-        camel_endpoint = endpoint.to_s
-        omit_empty_week_days = [
-          "/v2/player/scheduled-control/brightness",
-          "/v2/player/scheduled-control/video-source"
-        ].include?(camel_endpoint)
-
-        return payload unless omit_empty_week_days
+        return payload unless omit_empty_week_days?(endpoint)
 
         cleaned = Marshal.load(Marshal.dump(payload))
-        schedules = cleaned[:schedules] || []
-        schedules.each do |sch|
-          if sch.key?(:week_days) && (sch[:week_days].nil? || (sch[:week_days].respond_to?(:empty?) && sch[:week_days].empty?))
-            sch.delete(:week_days)
-          end
+        Array(cleaned[:schedules]).each do |schedule|
+          next unless schedule.key?(:week_days)
+
+          schedule.delete(:week_days) if blank_week_days?(schedule[:week_days])
         end
 
         cleaned
+      end
+
+      def omit_empty_week_days?(endpoint)
+        [
+          "/v2/player/scheduled-control/brightness",
+          "/v2/player/scheduled-control/video-source"
+        ].include?(endpoint.to_s)
+      end
+
+      def blank_week_days?(values)
+        return true if values.nil?
+        return values.empty? if values.respond_to?(:empty?)
+
+        false
       end
 
       def fetch_required(hash, *keys)

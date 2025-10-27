@@ -14,9 +14,15 @@
 - **Players**: `list`, `statuses`, `running_status`
 - **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `ntp_sync`, `synchronous_playback`, `request_result`
 - **Scheduled Control**: `screen_status`, `reboot`, `volume`, `brightness`, `video_source`
-- **Solutions**: `emergency_page`, `cancel_emergency`, `common_solution`
+- **Solutions**: `emergency_page`, `cancel_emergency`, `common_solution`, `offline_export`, `set_over_spec_detection`, `program_over_spec_detection`
 - **Screens** (VNNOXCare): `list`, `monitor`, `detail`
 - **Logs**: `control_history`
+
+> **Heads-up:** NovaCloud's public API docs (as of October 2025) do not expose
+> "material" endpoints for uploading, listing, or deleting media assets. This
+> client therefore expects assets to be hosted already (either uploaded via the
+> VNNOX UI or served from your own CDN) and referenced by URL in solution
+> payloads.
 
 ## Quick Start
 
@@ -84,6 +90,37 @@ client.solutions.emergency_page(
     ]
   }
 )
+
+offline_bundle = client.solutions.offline_export(
+  program_type: 1,
+  plan_version: "V2",
+  pages: [
+    {
+      name: "main",
+      widgets: [
+        { type: "PICTURE", md5: "abc", url: "https://cdn.example.com/img.jpg" }
+      ]
+    }
+  ]
+)
+
+puts offline_bundle.plan_json.url
+
+over_spec_result = client.solutions.program_over_spec_detection(
+  player_ids: [first_player.player_id],
+  pages: [
+    {
+      page_id: 1,
+      widgets: [
+        { widget_id: 1, type: "VIDEO", url: "https://cdn.example.com/video.mp4", width: "3840", height: "2160" }
+      ]
+    }
+  ]
+)
+
+if over_spec_result.items.any?(&:over_spec?)
+  warn "Program exceeds specifications"
+end
 ```
 
 ### Development
