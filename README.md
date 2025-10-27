@@ -2,42 +2,27 @@
 
 A Ruby gem for interacting with the NovaCloud Open Platform API. This client provides:
 
-- Simple configuration with `app_key`, `app_secret`, and `service_domain`
-- Automatic authentication headers via Faraday middleware
-- Typed exception hierarchy for HTTP errors
-- JSON request/response handling
-- Resource-based API wrappers with typed response objects
+- Manages configuration once (`app_key`, `app_secret`, `service_domain`).
+- Handles authentication headers automatically via Faraday middleware.
+- Maps HTTP errors to a typed exception hierarchy.
+- Normalizes GET/POST payloads and parses JSON responses.
+
+ Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`, `client.scheduled_control`, `client.solutions`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
 
 ## Resource Overview
 
-The gem currently implements the following NovaCloud API resources:
+- **Players**: `list`, `statuses`, `running_status`
+- **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `ntp_sync`, `synchronous_playback`, `request_result`
+- **Scheduled Control**: `screen_status`, `reboot`, `volume`, `brightness`, `video_source`
+- **Solutions**: `emergency_page`, `cancel_emergency`, `common_solution`, `offline_export`, `set_over_spec_detection`, `program_over_spec_detection`
+- **Screens** (VNNOXCare): `list`, `monitor`, `detail`
+- **Logs**: `control_history`
 
-- **Players**: `list`, `statuses`, `running_status` - Player management and status queries
-- **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `request_result` - Real-time player control commands
-- **Screens** (VNNOXCare): `list`, `monitor`, `detail` - Screen device status monitoring
-- **Logs**: `control_history` - Control command execution history
-
-**Note**: The gem focuses on the most commonly used endpoints. Additional endpoints like Solutions (emergency insertion, offline export), Scheduled Control, and Play Logs are not yet implemented but can be added based on demand.
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'novacloud_client'
-```
-
-And then execute:
-
-```bash
-bundle install
-```
-
-Or install it yourself as:
-
-```bash
-gem install novacloud_client
-```
+> **Heads-up:** NovaCloud's public API docs (as of October 2025) do not expose
+> "material" endpoints for uploading, listing, or deleting media assets. This
+> client therefore expects assets to be hosted already (either uploaded via the
+> VNNOX UI or served from your own CDN) and referenced by URL in solution
+> payloads.
 
 ## Quick Start
 
@@ -61,7 +46,28 @@ statuses.each do |status|
   puts "Player #{status.player_id}: online=#{status.online?}"
 end
 
-# Control player brightness
+queue = client.players.config_status(
+  player_ids: players.map(&:player_id),
+  notice_url: "https://example.com/status-webhook"
+)
+
+client.control.ntp_sync(
+  player_ids: players.map(&:player_id),
+  server: "ntp1.aliyun.com",
+  enable: true
+)
+
+client.scheduled_control.brightness(
+  player_ids: players.map(&:player_id),
+  schedules: {
+    start_date: Date.today.strftime("%Y-%m-%d"),
+    end_date: (Date.today + 30).strftime("%Y-%m-%d"),
+    exec_time: "07:00:00",
+    type: 0,
+    value: 55
+  }
+)
+
 request = client.control.brightness(
   player_ids: players.map(&:player_id),
   brightness: 80,
@@ -74,12 +80,54 @@ puts "All successful? #{result.all_successful?}"
 
 # List screens (VNNOXCare)
 screens = client.screens.list(status: 1)
-puts "Screen: #{screens.first.name}" if screens.any?
+puts screens.first.name
 
-# View control command history
-logs = client.logs.control_history(player_id: players.first.player_id)
-logs.each do |log|
-  puts "#{log.time}: #{log.task_name} - #{log.status}"
+client.solutions.emergency_page(
+  player_ids: [first_player.player_id],
+  attribute: { duration: 20_000, normal_program_status: "PAUSE", spots_type: "IMMEDIATELY" },
+  page: {
+    name: "urgent-alert",
+    widgets: [
+      {
+        type: "PICTURE",
+        z_index: 1,
+        duration: 10_000,
+        url: "https://example.com/alert.png",
+        layout: { x: "0%", y: "0%", width: "100%", height: "100%" }
+      }
+    ]
+  }
+)
+
+offline_bundle = client.solutions.offline_export(
+  program_type: 1,
+  plan_version: "V2",
+  pages: [
+    {
+      name: "main",
+      widgets: [
+        { type: "PICTURE", md5: "abc", url: "https://cdn.example.com/img.jpg" }
+      ]
+    }
+  ]
+)
+
+puts offline_bundle.plan_json.url
+
+over_spec_result = client.solutions.program_over_spec_detection(
+  player_ids: [first_player.player_id],
+  pages: [
+    {
+      page_id: 1,
+      widgets: [
+        { widget_id: 1, type: "VIDEO", url: "https://cdn.example.com/video.mp4", width: "3840", height: "2160" }
+      ]
+    }
+  ]
+)
+
+if over_spec_result.items.any?(&:over_spec?)
+  warn "Program exceeds specifications"
 end
 ```
 

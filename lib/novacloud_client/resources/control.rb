@@ -135,6 +135,44 @@ module NovacloudClient
         )
       end
 
+      # Configure NTP time synchronization for the selected players.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param server [String] NTP server hostname
+      # @param enable [Boolean] flag indicating whether to enable synchronization
+      # @return [NovacloudClient::Objects::ControlResult]
+      def ntp_sync(player_ids:, server:, enable:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+        validate_presence!(server, "server")
+        validate_boolean!(enable, "enable")
+
+        payload = {
+          playerIds: player_ids,
+          server: server,
+          enable: !enable.nil?
+        }
+
+        response = post("/v2/player/real-time-control/ntp", params: payload)
+        Objects::ControlResult.new(response)
+      end
+
+      # Toggle synchronous playback mode in real-time.
+      #
+      # @param player_ids [Array<String>] NovaCloud player identifiers (max #{MAX_BATCH})
+      # @param option [Integer, Symbol, String, TrueClass, FalseClass] desired synchronous state
+      # @return [NovacloudClient::Objects::ControlResult]
+      def synchronous_playback(player_ids:, option:)
+        validate_player_ids!(player_ids, max: MAX_BATCH)
+
+        payload = {
+          playerIds: player_ids,
+          option: normalize_sync_option(option)
+        }
+
+        response = post("/v2/player/real-time-control/simulcast", params: payload)
+        Objects::ControlResult.new(response)
+      end
+
       # Fetch the aggregated result of a previously queued control request.
       #
       # @param request_id [String] identifier returned by the queueing endpoints
@@ -161,6 +199,12 @@ module NovacloudClient
 
       def validate_presence!(value, field)
         raise ArgumentError, "#{field} is required" if value.to_s.strip.empty?
+      end
+
+      def validate_boolean!(value, field)
+        return if [true, false].include?(value)
+
+        raise ArgumentError, "#{field} must be true or false"
       end
 
       def enqueue_control(endpoint:, player_ids:, notice_url:, extra_payload: {})
@@ -190,6 +234,15 @@ module NovacloudClient
         when :close, "close", "CLOSE", :closed then "CLOSE"
         else
           raise ArgumentError, "status must be OPEN or CLOSE"
+        end
+      end
+
+      def normalize_sync_option(option)
+        case option
+        when true, :on, "on", "ON", 1 then 1
+        when false, :off, "off", "OFF", 0 then 0
+        else
+          raise ArgumentError, "option must be one of :on, :off, true, false, or 0/1"
         end
       end
     end

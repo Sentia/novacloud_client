@@ -6,19 +6,19 @@ Gem::Specification.new do |spec|
   spec.name = "novacloud_client"
   spec.version = NovacloudClient::VERSION
   spec.authors = ["Chayut Orapinpatipat"]
-  spec.email = ["chayut@canopusnet.com"]
+  spec.email = ["dev@sentia.com.au"]
 
   spec.summary = "Ruby client for the NovaCloud API."
   spec.description = <<~DESC.strip
     Faraday-based Ruby client for the NovaCloud Open Platform.
     Handles authentication, error mapping, and resource abstractions.
   DESC
-  spec.homepage = "https://github.com/canopusnet/novacloud_client"
+  spec.homepage = "https://github.com/Sentia/novacloud_client"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
-  spec.metadata["changelog_uri"] = "https://github.com/canopusnet/novacloud_client/blob/main/CHANGELOG.md"
+  spec.metadata["changelog_uri"] = "https://github.com/Sentia/novacloud_client/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mfa_required"] = "true"
 
   # Specify which files should be added to the gem when it is released.
@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
     ls.readlines("\x0", chomp: true).reject do |f|
       (f == gemspec) ||
-        f.start_with?(*%w[bin/ Gemfile .gitignore .rspec spec/ .github/ .rubocop.yml])
+        f.start_with?(*%w[bin/ Gemfile .gitignore .rspec spec/ .github/ .rubocop.yml .todo/])
     end
   end
   spec.bindir = "bin"
