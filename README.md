@@ -2,16 +2,15 @@
 
 A Ruby gem for interacting with the NovaCloud Open Platform API. This client provides:
 
-- Manages configuration once (`app_key`, `app_secret`, `service_domain`).
-- Handles authentication headers automatically via Faraday middleware.
-- Maps HTTP errors to a typed exception hierarchy.
-- Normalizes GET/POST payloads and parses JSON responses.
-
- Sprint 02 expands on this foundation with dedicated resource helpers (`client.players`, `client.control`, `client.scheduled_control`, `client.solutions`) and typed response objects (e.g., `NovacloudClient::Objects::Player`).
+- Configuration management (`app_key`, `app_secret`, `service_domain`)
+- Automatic authentication headers via Faraday middleware
+- Typed exception hierarchy for HTTP errors
+- JSON request/response handling
+- Resource-based API wrappers with typed response objects
 
 ## Resource Overview
 
-- **Players**: `list`, `statuses`, `running_status`
+- **Players**: `list`, `statuses`, `running_status`, `config_status`
 - **Control**: `brightness`, `volume`, `video_source`, `screen_power`, `screen_status`, `screenshot`, `reboot`, `ntp_sync`, `synchronous_playback`, `request_result`
 - **Scheduled Control**: `screen_status`, `reboot`, `volume`, `brightness`, `video_source`
 - **Solutions**: `emergency_page`, `cancel_emergency`, `common_solution`, `offline_export`, `set_over_spec_detection`, `program_over_spec_detection`
@@ -135,12 +134,12 @@ end
 
 This gem currently covers the following NovaCloud API categories:
 
-- ✅ **Player Management**: List players, get player statuses
-- ✅ **Real-Time Control**: Brightness, volume, video source, screen power/status, screenshot, reboot
+- ✅ **Player Management**: List players, get player statuses, configuration status queries
+- ✅ **Real-Time Control**: Brightness, volume, video source, screen power/status, screenshot, reboot, NTP sync, synchronous playback
+- ✅ **Scheduled Control**: Scheduled brightness, volume, screen status, reboot, video source switching
+- ✅ **Solutions**: Emergency insertion, common solutions, offline export, over-spec detection
 - ✅ **VNNOXCare Monitoring**: Screen list, monitor, detail
 - ✅ **Logs**: Control command history
-- ❌ **Solutions**: Emergency insertion, offline export, over-spec detection (not yet implemented)
-- ❌ **Scheduled Control**: Scheduled brightness, volume, screen status, reboot (not yet implemented)
 - ❌ **Play Logs**: Batch play log queries (not yet implemented)
 - ❌ **Notifications**: Video source/solution change notifications (not yet implemented)
 
